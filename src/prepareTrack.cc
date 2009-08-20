@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Wed Nov 19 19:14:22 EST 2008
-// $Id: prepareTrack.cc,v 1.3 2009/08/09 22:14:55 chrjones Exp $
+// $Id: prepareTrack.cc,v 1.3.2.1 2009/08/20 11:38:44 dmytro Exp $
 //
 
 // system include files
@@ -62,8 +62,20 @@ namespace fireworks {
     for ( std::vector<TEveVector>::const_iterator point = extraRefPoints.begin();
 	  point != extraRefPoints.end(); ++point )
       refStates.push_back(State(*point));
+    for ( std::vector<State>::const_iterator state = refStates.begin();
+	  state != refStates.end(); ++state )
+      std::cout << "x,y: " << state->position.fX << ", " << state->position.fY << ", " << state->position.fZ 
+		<< "px,py: " << state->momentum.fX << ", " << state->momentum.fY << ", " << state->momentum.fZ 
+		<< std::endl;
     std::sort( refStates.begin(), refStates.end(), StateOrdering(trackMomentum) );
-	    
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    for ( std::vector<State>::const_iterator state = refStates.begin();
+	  state != refStates.end(); ++state )
+      std::cout << "x,y: " << state->position.fX << ", " << state->position.fY << ", " << state->position.fZ 
+		<< "px,py: " << state->momentum.fX << ", " << state->momentum.fY << ", " << state->momentum.fZ 
+		<< std::endl;
+    std::cout << "===================================================================" << std::endl;
+    
     //
     // * if the first state has non-zero momentum use it as a starting point
     //   and all other points as PathMarks to follow
