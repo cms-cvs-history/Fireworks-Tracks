@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrackRPZProxyBuilder.cc,v 1.3 2009/01/06 21:38:40 chrjones Exp $
+// $Id: FWTrackRPZProxyBuilder.cc,v 1.4 2009/01/23 21:35:47 amraktad Exp $
 //
 
 // system include files
@@ -27,7 +27,7 @@
 #include "Fireworks/Core/src/CmsShowMain.h"
 
 #include "Fireworks/Tracks/interface/prepareTrack.h"
-
+#include "Fireworks/Tracks/interface/CmsMagField.h"
 class FWTrackRPZProxyBuilder : public FWRPZSimpleProxyBuilderTemplate<reco::Track> {
 
 public:
@@ -50,6 +50,7 @@ private:
    // ---------- member data --------------------------------
 
    FWEvePtr<TEveTrackPropagator> m_propagator;
+   mutable CmsMagField m_cmsMagField;
 };
 
 //
@@ -66,10 +67,25 @@ private:
 FWTrackRPZProxyBuilder::FWTrackRPZProxyBuilder() :
    m_propagator( new TEveTrackPropagator)
 {
-   m_propagator->SetMagField( -CmsShowMain::getMagneticField() );
-   m_propagator->SetMaxR(123.0);
-   m_propagator->SetMaxZ(300.0);
-
+   m_cmsMagField.setReverseState( true );
+   m_propagator->SetMagFieldObj( &m_cmsMagField );
+   m_propagator->SetMaxR(850);
+   m_propagator->SetMaxZ(1100);
+   std::cout << "Field(0,0,0): " 
+	     << m_cmsMagField.GetField(0,0,0).fX << ", "
+	     << m_cmsMagField.GetField(0,0,0).fY << ", "
+	     << m_cmsMagField.GetField(0,0,0).fZ << ", "
+	     << std::endl;
+   std::cout << "Field(100,0,0): " 
+	     << m_cmsMagField.GetField(100,0,0).fX << ", "
+	     << m_cmsMagField.GetField(100,0,0).fY << ", "
+	     << m_cmsMagField.GetField(100,0,0).fZ << ", "
+	     << std::endl;
+   std::cout << "Field(500,0,0): " 
+	     << m_cmsMagField.GetField(500,0,0).fX << ", "
+	     << m_cmsMagField.GetField(500,0,0).fY << ", "
+	     << m_cmsMagField.GetField(500,0,0).fZ << ", "
+	     << std::endl;
 }
 
 // FWTrackRPZProxyBuilder::FWTrackRPZProxyBuilder(const FWTrackRPZProxyBuilder& rhs)
@@ -111,7 +127,7 @@ FWTrackRPZProxyBuilder::build(const reco::Track& iData, unsigned int iIndex,TEve
             bool measuredFieldIsOn = estimate > 2.0;
             if(fieldIsOn != measuredFieldIsOn) {
                CmsShowMain::guessFieldIsOn(measuredFieldIsOn);
-               m_propagator->SetMagField( -CmsShowMain::getMagneticField() );
+               m_cmsMagField.setMagnetState( measuredFieldIsOn );
             }
          }
       }
