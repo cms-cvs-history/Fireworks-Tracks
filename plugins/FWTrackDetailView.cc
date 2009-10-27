@@ -326,8 +326,8 @@ TEveElement* FWTrackDetailView::build (const FWModelId &id, const reco::Track* t
    padX->Draw();
 
    TH2F* h_res = new TH2F("h_resx","h_resx",10,-5.5,5.5,ndet,0,ndet);
-   char* res_str= "residuals in Si detector local x-y coord.";
-   char* title = "residual";
+   const char* res_str= "residuals in Si detector local x-y coord.";
+   const char* title = "residual";
    padX->cd();
    padX->SetLeftMargin(0.2);
    padX->SetRightMargin(0.2);
