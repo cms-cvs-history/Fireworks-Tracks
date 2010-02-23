@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrack3DProxyBuilder.cc,v 1.12 2009/12/11 21:18:45 dmytro Exp $
+// $Id: FWTrack3DProxyBuilder.cc,v 1.13 2010/01/21 21:02:13 amraktad Exp $
 //
 
 // system include files
@@ -98,6 +98,7 @@ FWTrack3DProxyBuilder::build(const reco::Track& iData, unsigned int iIndex,TEveE
 
    TEveTrack* trk = fireworks::prepareTrack( iData, propagator, item()->defaultDisplayProperties().color() );
    trk->MakeTrack();
+   trk->SetLineWidth(3);
    oItemHolder.AddElement( trk );
 }
 
