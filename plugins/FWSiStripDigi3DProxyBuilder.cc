@@ -52,19 +52,6 @@ void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
   for ( edm::DetSetVector<SiStripDigi>::const_iterator it = digis->begin(), end = digis->end();
         it != end; ++it)     
   {     
-    // Fireworks certainly doesn't like rendering all of these and making them pick-able
-    // Perhaps we don't care about picking these digis and should just make one point set
-    // and not bother with the compound...
-    TEveCompound* compound = new TEveCompound("si strip digi compound", "siStripDigis");
-    compound->OpenCompound();
-    tList->AddElement(compound);
-
-    TEvePointSet* pointSet = new TEvePointSet();
-    pointSet->SetMarkerSize(2);
-    pointSet->SetMarkerStyle(2);
-    pointSet->SetMarkerColor(2);
-    compound->AddElement(pointSet);
-
     edm::DetSet<SiStripDigi> ds = *it;
 
     if ( ds.data.size() )   
@@ -82,6 +69,19 @@ void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
       {
         int strip = static_cast<int>((*idigi).strip());
         int adc   = static_cast<int>((*idigi).adc());
+
+        // Fireworks certainly doesn't like rendering all of these and making them pick-able
+        // Perhaps we don't care about picking these digis and should just make one point set
+        // and not bother with the compound...
+        TEveCompound* compound = new TEveCompound("si strip digi compound", "siStripDigis");
+        compound->OpenCompound();
+        tList->AddElement(compound);
+
+        TEvePointSet* pointSet = new TEvePointSet();
+        pointSet->SetMarkerSize(2);
+        pointSet->SetMarkerStyle(2);
+        pointSet->SetMarkerColor(2);
+        compound->AddElement(pointSet);
 
         // For now, take the center of the strip as the local position 
         const DetIdToMatrix* detIdToGeo = iItem->getGeom();

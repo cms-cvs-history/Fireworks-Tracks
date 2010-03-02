@@ -54,16 +54,6 @@ void FWSiPixelDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
   for ( edm::DetSetVector<PixelDigi>::const_iterator it = digis->begin(), end = digis->end();
         it != end; ++it )
   {
-    TEveCompound* compound = new TEveCompound("si pixel digi compound", "siPixelDigis");
-    compound->OpenCompound();
-    tList->AddElement(compound);
-
-    TEvePointSet* pointSet = new TEvePointSet();
-    pointSet->SetMarkerSize(2);
-    pointSet->SetMarkerStyle(2);
-    pointSet->SetMarkerColor(2);
-    compound->AddElement(pointSet);
-
     edm::DetSet<PixelDigi> ds = *it;
     
     if ( ds.data.size() )       
@@ -74,6 +64,16 @@ void FWSiPixelDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
       for ( edm::DetSet<PixelDigi>::const_iterator idigi = ds.data.begin(), idigiEnd = ds.data.end();
             idigi != idigiEnd; ++idigi )
       {
+        TEveCompound* compound = new TEveCompound("si pixel digi compound", "siPixelDigis");
+        compound->OpenCompound();
+        tList->AddElement(compound);
+
+        TEvePointSet* pointSet = new TEvePointSet();
+        pointSet->SetMarkerSize(2);
+        pointSet->SetMarkerStyle(2);
+        pointSet->SetMarkerColor(2);
+        compound->AddElement(pointSet);
+
         int adc = static_cast<int>((*idigi).adc());
         int row = static_cast<int>((*idigi).row());
         int column = static_cast<int>((*idigi).column());
