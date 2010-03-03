@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
 // Package:     Core
-// Class  :     FWSiPixeRPZProxyBuilder
+// Class  :     SiPixelProxyPlain3DBuilder
 //
-/**\class FWSiPixeRPZProxyBuilder FWSiPixeRPZProxyBuilder.h Fireworks/Core/interface/FWSiPixeRPZProxyBuilder.h
+/**\class SiPixelProxyPlain3DBuilder SiPixelProxyPlain3DBuilder.h Fireworks/Core/interface/SiPixelProxyPlain3DBuilder.h
 
    Description: <one line class summary>
 
@@ -14,17 +14,19 @@
 //
 // Original Author:
 //         Created:  Thu Dec  6 18:01:21 PST 2007
-// $Id: FWSiPixelRPZProxyBuilder.cc,v 1.2 2009/01/23 21:35:47 amraktad Exp $
+// $Id: FWSiPixel3DProxyBuilder.cc,v 1.6 2009/12/15 23:02:57 dmytro Exp $
 //
 
 // system include files
 #include "TEveManager.h"
 #include "TEveCompound.h"
 #include "TEveGeoNode.h"
+#include "TEveStraightLineSet.h"
 
 // user include files
+#include "Fireworks/Tracks/interface/TrackUtils.h"
+#include "Fireworks/Core/interface/FW3DDataProxyBuilder.h"
 #include "Fireworks/Core/interface/FWEventItem.h"
-#include "Fireworks/Core/interface/FWRPZDataProxyBuilder.h"
 #include "Fireworks/Core/interface/BuilderUtils.h"
 #include "Fireworks/Core/src/CmsShowMain.h"
 #include "Fireworks/Core/src/changeElementAndChildren.h"
@@ -32,21 +34,18 @@
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 #include "Fireworks/Tracks/interface/TrackUtils.h"
 
-class FWSiPixeRPZProxyBuilder : public FWRPZDataProxyBuilder
+class FWSiPixelCluster3DProxyBuilder : public FW3DDataProxyBuilder
 {
 public:
-   FWSiPixeRPZProxyBuilder() {
+   FWSiPixelCluster3DProxyBuilder() {
    }
-   virtual ~FWSiPixeRPZProxyBuilder() {
+   virtual ~FWSiPixelCluster3DProxyBuilder() {
    }
    REGISTER_PROXYBUILDER_METHODS();
 private:
    virtual void build(const FWEventItem* iItem, TEveElementList** product);
-
-   FWSiPixeRPZProxyBuilder(const FWSiPixeRPZProxyBuilder&);    // stop default
-
-   const FWSiPixeRPZProxyBuilder& operator=(const FWSiPixeRPZProxyBuilder&);    // stop default
-
+   FWSiPixelCluster3DProxyBuilder(const FWSiPixelCluster3DProxyBuilder&);    // stop default
+   const FWSiPixelCluster3DProxyBuilder& operator=(const FWSiPixelCluster3DProxyBuilder&);    // stop default
    void modelChanges(const FWModelIds& iIds, TEveElement* iElements);
    void applyChangesToAllModels(TEveElement* iElements);
 
@@ -55,7 +54,7 @@ protected:
    virtual Mode getMode() { return Clusters; }
 };
 
-void FWSiPixeRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
+void FWSiPixelCluster3DProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
 {
    TEveElementList* tList = *product;
    Color_t color = iItem->defaultDisplayProperties().color();
@@ -90,8 +89,8 @@ void FWSiPixeRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementList** 
       list->SetRnrChildren( iItem->defaultDisplayProperties().isVisible() );
 
       if (iItem->getGeom()) {
-         Mode m = getMode();
-         if (m == Clusters) {
+          Mode m = getMode();
+          if (m == Clusters) {
              const TGeoHMatrix* matrix = iItem->getGeom()->getMatrix( detid );
              std::vector<TVector3> pixelPoints;
              const edmNew::DetSet<SiPixelCluster> & clusters = *set;
@@ -99,29 +98,51 @@ void FWSiPixeRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementList** 
                  fireworks::pushPixelCluster(pixelPoints, matrix, detid, *itc);
              }
              fireworks::addTrackerHits3D(pixelPoints, list, color, 1);
-         } else if (m == Modules) {
+          } else if (m == Modules) {
              TEveGeoShape* shape = iItem->getGeom()->getShape( id );
              if(0!=shape) {
-                 shape->SetMainTransparency(50);
-                 shape->SetMainColor( iItem->defaultDisplayProperties().color() );
-                 shape->SetPickable(true);
-                 list->AddElement(shape);
+                shape->SetMainTransparency(50);
+                shape->SetMainColor( iItem->defaultDisplayProperties().color() );
+                shape->SetPickable(true);
+                list->AddElement(shape);
              }
-         }
+          }
+
       }
 
       gEve->AddElement(list,tList);
+/////////////////////////////////////////////////////	   
+//LatB
+	   static int C2D=0;
+	   static int PRINT=0;
+	   if (C2D) {
+			if (PRINT) std::cout<<"SiPixelCluster  "<<index<<", "<<title<<std::endl;
+			TEveStraightLineSet *scposition = new TEveStraightLineSet(title);
+			for(edmNew::DetSet<SiPixelCluster>::const_iterator ic = set->begin (); ic != set->end (); ++ic) { 
+				double lx = (*ic).x();
+				double ly = (*ic).y();
+				TVector3 point; fireworks::localSiPixel(point, lx, ly, id, iItem);
+				static const double dd = .5;
+				scposition->AddLine(point.X()-dd, point.Y(), point.Z(), point.X()+dd, point.Y(), point.Z());
+				scposition->AddLine(point.X(), point.Y()-dd, point.Z(), point.X(), point.Y()+dd, point.Z());
+				scposition->AddLine(point.X(), point.Y(), point.Z()-dd, point.X(), point.Y(), point.Z()+dd);
+
+				scposition->SetLineColor(kRed);
+			}
+			gEve->AddElement(scposition,tList);
+	   }
+/////////////////////////////////////////////////////	   
    }
 }
 
 void
-FWSiPixeRPZProxyBuilder::modelChanges(const FWModelIds& iIds, TEveElement* iElements)
+FWSiPixelCluster3DProxyBuilder::modelChanges(const FWModelIds& iIds, TEveElement* iElements)
 {
    applyChangesToAllModels(iElements);
 }
 
 void
-FWSiPixeRPZProxyBuilder::applyChangesToAllModels(TEveElement* iElements)
+FWSiPixelCluster3DProxyBuilder::applyChangesToAllModels(TEveElement* iElements)
 {
    if(0!=iElements && item() && item()->size()) {
       //make the bad assumption that everything is being changed indentically
@@ -133,14 +154,14 @@ FWSiPixeRPZProxyBuilder::applyChangesToAllModels(TEveElement* iElements)
    }
 }
 
-class FWSiPixeModRPZProxyBuilder : public FWSiPixeRPZProxyBuilder {
+class FWSiPixelClusterMod3DProxyBuilder : public FWSiPixelCluster3DProxyBuilder {
 public:
-    FWSiPixeModRPZProxyBuilder() {}
-    ~FWSiPixeModRPZProxyBuilder() {}
+   FWSiPixelClusterMod3DProxyBuilder() {}
+    ~FWSiPixelClusterMod3DProxyBuilder() {}
    REGISTER_PROXYBUILDER_METHODS();
 protected:
     virtual Mode getMode() { return Modules; }
 };
 
-REGISTER_FWRPZDATAPROXYBUILDERBASE(FWSiPixeRPZProxyBuilder,SiPixelClusterCollectionNew,"SiPixel");
-REGISTER_FWRPZDATAPROXYBUILDERBASE(FWSiPixeModRPZProxyBuilder,SiPixelClusterCollectionNew,"SiPixelDets");
+REGISTER_FW3DDATAPROXYBUILDER(FWSiPixelCluster3DProxyBuilder,SiPixelClusterCollectionNew,"SiPixel");
+REGISTER_FW3DDATAPROXYBUILDER(FWSiPixelClusterMod3DProxyBuilder,SiPixelClusterCollectionNew,"SiPixelDets");
