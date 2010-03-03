@@ -4,7 +4,7 @@
 #include "TEveStraightLineSet.h"
 
 #include "Fireworks/Tracks/interface/TrackUtils.h"
-#include "Fireworks/Core/interface/FW3DDataProxyBuilder.h"
+#include "Fireworks/Core/interface/FWRPZDataProxyBuilder.h"
 #include "Fireworks/Core/interface/FWEventItem.h"
 #include "Fireworks/Core/interface/BuilderUtils.h"
 #include "Fireworks/Core/src/CmsShowMain.h"
@@ -13,20 +13,20 @@
 #include "DataFormats/SiStripDigi/interface/SiStripDigi.h"
 #include "DataFormats/Common/interface/DetSetVector.h"
 
-class FWSiStripDigi3DProxyBuilder : public FW3DDataProxyBuilder
+class FWSiStripDigiRPZProxyBuilder : public FWRPZDataProxyBuilder
 {
 public:
-  FWSiStripDigi3DProxyBuilder() {}
-  virtual ~FWSiStripDigi3DProxyBuilder() {}
+  FWSiStripDigiRPZProxyBuilder() {}
+  virtual ~FWSiStripDigiRPZProxyBuilder() {}
   REGISTER_PROXYBUILDER_METHODS();
 
 private:
   virtual void build(const FWEventItem* iItem, TEveElementList** product);
-  FWSiStripDigi3DProxyBuilder(const FWSiStripDigi3DProxyBuilder&);    
-  const FWSiStripDigi3DProxyBuilder& operator=(const FWSiStripDigi3DProxyBuilder&);
+  FWSiStripDigiRPZProxyBuilder(const FWSiStripDigiRPZProxyBuilder&);    
+  const FWSiStripDigiRPZProxyBuilder& operator=(const FWSiStripDigiRPZProxyBuilder&);
 };
 
-void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
+void FWSiStripDigiRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
 {
   TEveElementList* tList = *product;
 
@@ -53,6 +53,7 @@ void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
         it != end; ++it)     
   {     
     edm::DetSet<SiStripDigi> ds = *it;
+
     const uint32_t& detID = ds.id;
     DetId detid(detID);
     
@@ -92,4 +93,4 @@ void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
   } // end of iteratin over the DetSetVector
 }
 
-REGISTER_FW3DDATAPROXYBUILDER(FWSiStripDigi3DProxyBuilder,edm::DetSetVector<SiStripDigi>,"SiStripDigi");
+REGISTER_FWRPZDATAPROXYBUILDERBASE(FWSiStripDigiRPZProxyBuilder,edm::DetSetVector<SiStripDigi>,"SiStripDigi");

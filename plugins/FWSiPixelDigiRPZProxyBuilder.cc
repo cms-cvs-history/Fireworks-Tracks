@@ -4,7 +4,7 @@
 #include "TEveStraightLineSet.h"
 
 #include "Fireworks/Tracks/interface/TrackUtils.h"
-#include "Fireworks/Core/interface/FW3DDataProxyBuilder.h"
+#include "Fireworks/Core/interface/FWRPZDataProxyBuilder.h"
 #include "Fireworks/Core/interface/FWEventItem.h"
 #include "Fireworks/Core/interface/BuilderUtils.h"
 #include "Fireworks/Core/src/CmsShowMain.h"
@@ -13,20 +13,20 @@
 #include "DataFormats/SiPixelDigi/interface/PixelDigi.h"
 #include "DataFormats/Common/interface/DetSetVector.h"
 
-class FWSiPixelDigi3DProxyBuilder : public FW3DDataProxyBuilder
+class FWSiPixelDigiRPZProxyBuilder : public FWRPZDataProxyBuilder
 {
 public:
-  FWSiPixelDigi3DProxyBuilder() {}
-  virtual ~FWSiPixelDigi3DProxyBuilder() {}
+  FWSiPixelDigiRPZProxyBuilder() {}
+  virtual ~FWSiPixelDigiRPZProxyBuilder() {}
   REGISTER_PROXYBUILDER_METHODS();
 
 private:
   virtual void build(const FWEventItem* iItem, TEveElementList** product);
-  FWSiPixelDigi3DProxyBuilder(const FWSiPixelDigi3DProxyBuilder&);    
-  const FWSiPixelDigi3DProxyBuilder& operator=(const FWSiPixelDigi3DProxyBuilder&);
+  FWSiPixelDigiRPZProxyBuilder(const FWSiPixelDigiRPZProxyBuilder&);    
+  const FWSiPixelDigiRPZProxyBuilder& operator=(const FWSiPixelDigiRPZProxyBuilder&);
 };
 
-void FWSiPixelDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
+void FWSiPixelDigiRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
 {
   TEveElementList* tList = *product;
 
@@ -55,12 +55,13 @@ void FWSiPixelDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
         it != end; ++it )
   {
     edm::DetSet<PixelDigi> ds = *it;
+    
     const uint32_t& detID = ds.id;
     DetId detid(detID);              
-         
+    
     for ( edm::DetSet<PixelDigi>::const_iterator idigi = ds.data.begin(), idigiEnd = ds.data.end();
           idigi != idigiEnd; ++idigi )
-    {
+    { 
       TEveCompound* compound = new TEveCompound("si pixel digi compound", "siPixelDigis");
       compound->OpenCompound();
       tList->AddElement(compound);
@@ -81,9 +82,9 @@ void FWSiPixelDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
       TVector3 point;
       fireworks::localSiPixel(point, row, column, detid, iItem);
       pointSet->SetNextPoint(point.x(), point.y(), point.z());
-  
+      
     } // end of iteration over digis in range   
   } // end of iteration over the DetSetVector
 }
 
-REGISTER_FW3DDATAPROXYBUILDER(FWSiPixelDigi3DProxyBuilder,edm::DetSetVector<PixelDigi>,"SiPixelDigi");
+REGISTER_FWRPZDATAPROXYBUILDERBASE(FWSiPixelDigiRPZProxyBuilder,edm::DetSetVector<PixelDigi>,"SiPixelDigi");
