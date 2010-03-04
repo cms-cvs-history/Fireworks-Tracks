@@ -24,6 +24,8 @@ private:
   virtual void build(const FWEventItem* iItem, TEveElementList** product);
   FWSiStripDigi3DProxyBuilder(const FWSiStripDigi3DProxyBuilder&);    
   const FWSiStripDigi3DProxyBuilder& operator=(const FWSiStripDigi3DProxyBuilder&);
+  void modelChanges(const FWModelIds& iIds, TEveElement* iElements);
+  void applyChangesToAllModels(TEveElement* iElements);
 };
 
 void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementList** product)
@@ -90,6 +92,25 @@ void FWSiStripDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
 
     } // end of iteration over digis  
   } // end of iteratin over the DetSetVector
+}
+
+void
+FWSiStripDigi3DProxyBuilder::modelChanges(const FWModelIds& iIds, TEveElement* iElements)
+{
+   applyChangesToAllModels(iElements);
+}
+
+void
+FWSiStripDigi3DProxyBuilder::applyChangesToAllModels(TEveElement* iElements)
+{
+   if( 0 != iElements && item() && item()->size() ) 
+   {
+      const FWEventItem::ModelInfo info(item()->defaultDisplayProperties(),false);
+      changeElementAndChildren(iElements, info);
+      iElements->SetRnrSelf(info.displayProperties().isVisible());
+      iElements->SetRnrChildren(info.displayProperties().isVisible());
+      iElements->ElementChanged();
+   }
 }
 
 REGISTER_FW3DDATAPROXYBUILDER(FWSiStripDigi3DProxyBuilder,edm::DetSetVector<SiStripDigi>,"SiStripDigi");
