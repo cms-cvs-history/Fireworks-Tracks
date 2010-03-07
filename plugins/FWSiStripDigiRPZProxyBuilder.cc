@@ -78,7 +78,7 @@ void FWSiStripDigiRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementLi
       TEvePointSet* pointSet = new TEvePointSet();
       pointSet->SetMarkerSize(2);
       pointSet->SetMarkerStyle(2);
-      pointSet->SetMarkerColor(2);
+      pointSet->SetMarkerColor(46);
       compound->AddElement(pointSet);
 
       // For now, take the center of the strip as the local position 

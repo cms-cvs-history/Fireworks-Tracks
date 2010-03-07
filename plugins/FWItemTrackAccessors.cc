@@ -1,22 +1,19 @@
 // -*- C++ -*-
 //
-// Package:     Core
+// Package:     Tracks
 // Class  :     FWItemTrackAccessor
 //
 // Implementation:
-//     An example of how to write a plugin based FWItemAccessorBase derived class.
 //
-// Original Author:  Giulio Eulisse
+// Original Author:  Tom McCauley
 //         Created:  Thu Feb 18 15:19:44 EDT 2008
-// $Id: FWItemTrackAccessors.cc,v 1.1 2010/03/01 09:46:33 eulisse Exp $
+// $Id: FWItemTrackAccessors.cc,v 1.1 2010/03/01 09:46:33 mccauley Exp $
 //
 
-// system include files
 #include <assert.h>
 #include "Reflex/Object.h"
 #include "TClass.h"
 
-// user include files
 #include "DataFormats/Common/interface/DetSetVector.h"
 #include "DataFormats/SiPixelDigi/interface/PixelDigi.h"
 #include "DataFormats/SiStripDigi/interface/SiStripDigi.h"

@@ -70,14 +70,14 @@ void FWSiPixelDigi3DProxyBuilder::build(const FWEventItem* iItem, TEveElementLis
       TEvePointSet* pointSet = new TEvePointSet();
       pointSet->SetMarkerSize(2);
       pointSet->SetMarkerStyle(2);
-      pointSet->SetMarkerColor(2);
+      pointSet->SetMarkerColor(46);
       compound->AddElement(pointSet);
 
-      int adc = static_cast<int>((*idigi).adc());
+      //int adc = static_cast<int>((*idigi).adc());
       int row = static_cast<int>((*idigi).row());
       int column = static_cast<int>((*idigi).column());
-      int channel = static_cast<int>((*idigi).channel());
-
+      //int channel = static_cast<int>((*idigi).channel());
+      
       // This method, although called "local" seems to transform
       // the point to global coordinates. See TrackUtils.cc
       TVector3 point;

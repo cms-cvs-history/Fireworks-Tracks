@@ -72,11 +72,11 @@ void FWSiPixelDigiRPZProxyBuilder::build(const FWEventItem* iItem, TEveElementLi
       pointSet->SetMarkerColor(2);
       compound->AddElement(pointSet);
 
-      int adc = static_cast<int>((*idigi).adc());
+      //int adc = static_cast<int>((*idigi).adc());
       int row = static_cast<int>((*idigi).row());
       int column = static_cast<int>((*idigi).column());
-      int channel = static_cast<int>((*idigi).channel());
-
+      //int channel = static_cast<int>((*idigi).channel());
+      
       // This method, although called "local" seems to transform
       // the point to global coordinates. See TrackUtils.cc
       TVector3 point;
