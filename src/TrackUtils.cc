@@ -2,7 +2,7 @@
 //
 // Package:     Core
 // Class  :     TrackUtils
-// $Id: TrackUtils.cc,v 1.14 2010/01/26 17:55:15 amraktad Exp $
+// $Id: TrackUtils.cc,v 1.15 2010/01/28 19:02:33 amraktad Exp $
 //
 
 // system include files
@@ -110,14 +110,14 @@ prepareTrack(const reco::Track& track,
    if ( refStates.back().valid ) {
       t.fSign = (-1)*track.charge();
       t.fV = refStates.back().position;
-      t.fP = refStates.back().momentum * (-1);
+      t.fP = refStates.back().momentum * (-1.f);
       TEveTrack* trk = new TEveTrack(&t,propagator);
       trk->SetBreakProjectedTracks(TEveTrack::kBPTAlways);
       trk->SetMainColor(color);
       unsigned int i(refStates.size()-1);
       for(; i>0; --i) {
          if ( refStates[i].valid )
-            trk->AddPathMark( TEvePathMark( TEvePathMark::kReference, refStates[i].position, refStates[i].momentum*(-1) ) );
+            trk->AddPathMark( TEvePathMark( TEvePathMark::kReference, refStates[i].position, refStates[i].momentum*(-1.f) ) );
          else
             trk->AddPathMark( TEvePathMark( TEvePathMark::kDaughter, refStates[i].position ) );
       }
