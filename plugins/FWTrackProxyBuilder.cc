@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrackProxyBuilder.cc,v 1.10 2010/05/03 15:47:46 amraktad Exp $
+// $Id: FWTrackProxyBuilder.cc,v 1.12 2010/07/06 18:32:08 amraktad Exp $
 //
 
 // system include files
@@ -50,7 +50,7 @@ FWTrackProxyBuilder::~FWTrackProxyBuilder()
 void
 FWTrackProxyBuilder::build( const reco::Track& iData, unsigned int iIndex,TEveElement& oItemHolder , const FWViewContext*) 
 {
-   if( context().getField()->getAutodetect() ) {
+   if( context().getField()->getSource() == FWMagField::kNone ) {
       if( fabs( iData.eta() ) < 2.0 && iData.pt() > 0.5 && iData.pt() < 30 ) {
 	 double estimate = fw::estimate_field( iData, true );
          if( estimate >= 0 ) context().getField()->guessField( estimate );
