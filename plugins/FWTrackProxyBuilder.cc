@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrackProxyBuilder.cc,v 1.13 2010/11/11 20:25:29 amraktad Exp $
+// $Id: FWTrackProxyBuilder.cc,v 1.13.8.2 2012/06/28 02:57:09 amraktad Exp $
 //
 
 // system include files
@@ -59,6 +59,7 @@ private:
          iItem->getConfig()->assertParam("Fit Pixel RecHits", false);
          iItem->getConfig()->assertParam("Fit Strip RecHits", false);
          iItem->getConfig()->assertParam("Draw RecHits", false);
+         // iItem->getConfig()->assertParam("RecHits Color",  10l, 0l, 100l);
    }
 };
 
@@ -176,7 +177,13 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
          float globalBottom[3];
          item()->getGeom()->localToGlobal( rawid, localTop, globalTop, localBottom, globalBottom );
          
-         if (drawRecHits) scposition->AddLine( globalTop[0], globalTop[1], globalTop[2],globalBottom[0], globalBottom[1], globalBottom[2] );
+         if (drawRecHits) 
+         {
+            scposition->AddLine( globalTop[0], globalTop[1], globalTop[2],globalBottom[0], globalBottom[1], globalBottom[2] );
+	    TEveGeoShape* shape = item()->getGeom()->getEveShape( rawid );
+      setupAddElement(shape, &oItemHolder);
+      shape->SetMainTransparency(65);
+         } 
                              
          if (trk) {
             TEveVectorD stripVec( -globalTop[0] +globalBottom[0], -globalTop[1] +globalBottom[1],  -globalTop[2] +globalBottom[2]);
@@ -190,13 +197,15 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
    
    if (drawRecHits) 
    {
+      int col = kRed; // item()->getConfig()->value<long>("RecHits Color");
       setupAddElement(pointSet, &oItemHolder);
       setupAddElement(scposition, &oItemHolder);     
-      scposition->SetMainColor(kRed);
-      pointSet->SetMainColor(kRed);
+      scposition->SetMainColor(col);
+      pointSet->SetMainColor(col);
       // pointSet->SetMarkerStyle(2);
   }
-   
+
+      trk->SetLineWidth(2);   
    // debug with Eve
    if (0) {
       trk->SetRnrPoints(true);
