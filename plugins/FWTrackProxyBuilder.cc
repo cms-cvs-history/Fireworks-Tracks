@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrackProxyBuilder.cc,v 1.13.8.2 2012/06/28 02:57:09 amraktad Exp $
+// $Id: FWTrackProxyBuilder.cc,v 1.13.8.3 2012/06/29 22:44:22 amraktad Exp $
 //
 
 // system include files
@@ -120,13 +120,21 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
 {
    TEveStraightLineSet *scposition = 0;
    TEvePointSet* pointSet = 0;
-   
    if (drawRecHits)
    {
       pointSet = new TEvePointSet();   
       scposition =  new TEveStraightLineSet;   
    }
 
+   // track inner
+   if( iData.extra().isAvailable() && iData.innerOk())
+   {
+         const reco::TrackBase::Point  &v = iData.innerPosition();
+         const reco::TrackBase::Vector &p = iData.innerMomentum();
+         trk->AddPathMark( TEvePathMark( TEvePathMark::kReference, TEveVector(v.x(), v.y() , v.z()), TEveVector(p.x(), p.y() , p.z())));
+   }
+
+   // rec hits
    for( trackingRecHit_iterator it = iData.recHitsBegin(), itEnd = iData.recHitsEnd(); it != itEnd; ++it )
    {
       unsigned int rawid = (*it)->geographicalId();      
@@ -181,8 +189,8 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
          {
             scposition->AddLine( globalTop[0], globalTop[1], globalTop[2],globalBottom[0], globalBottom[1], globalBottom[2] );
 	    TEveGeoShape* shape = item()->getGeom()->getEveShape( rawid );
-      setupAddElement(shape, &oItemHolder);
-      shape->SetMainTransparency(65);
+            setupAddElement(shape, &oItemHolder);
+            shape->SetMainTransparency(65);
          } 
                              
          if (trk) {
@@ -195,6 +203,13 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
       }
    }
    
+   // track outer
+   if( iData.extra().isAvailable() && iData.outerOk())
+   {
+         const reco::TrackBase::Point  &v = iData.outerPosition();
+         trk->AddPathMark( TEvePathMark( TEvePathMark::kDecay, TEveVector(v.x(), v.y() , v.z())));
+   }
+
    if (drawRecHits) 
    {
       int col = kRed; // item()->getConfig()->value<long>("RecHits Color");
@@ -204,8 +219,7 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
       pointSet->SetMainColor(col);
       // pointSet->SetMarkerStyle(2);
   }
-
-      trk->SetLineWidth(2);   
+   
    // debug with Eve
    if (0) {
       trk->SetRnrPoints(true);
