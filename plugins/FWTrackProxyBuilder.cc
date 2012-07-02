@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrackProxyBuilder.cc,v 1.13.8.3 2012/06/29 22:44:22 amraktad Exp $
+// $Id: FWTrackProxyBuilder.cc,v 1.13.8.4 2012/06/30 00:10:25 amraktad Exp $
 //
 
 // system include files
@@ -43,7 +43,11 @@ public:
    virtual ~FWTrackProxyBuilder();
    
    REGISTER_PROXYBUILDER_METHODS();
-   
+  
+protected: 
+   virtual void build(const FWEventItem* iItem, TEveElementList* product, const FWViewContext* vc);
+   virtual void setItem(const FWEventItem* iItem);
+
 private:
    FWTrackProxyBuilder(const FWTrackProxyBuilder&); // stop default
    
@@ -52,30 +56,62 @@ private:
    void build(const reco::Track& iData, unsigned int iIndex,TEveElement& oItemHolder, const FWViewContext*);
    void addRecHitInfo(const reco::Track& iData, TEveElement& oItemHolder, bool drawRecHits, TEveTrack* trk, bool, bool) ;
    
-   virtual void setItem(const FWEventItem* iItem)
-   {
-      FWProxyBuilderBase::setItem(iItem);
-      if (iItem)
-         iItem->getConfig()->assertParam("Fit Pixel RecHits", false);
-         iItem->getConfig()->assertParam("Fit Strip RecHits", false);
-         iItem->getConfig()->assertParam("Draw RecHits", false);
-         // iItem->getConfig()->assertParam("RecHits Color",  10l, 0l, 100l);
-   }
+
+   TEveTrackPropagator*  m_trackerPropagator;
 };
 
-FWTrackProxyBuilder::FWTrackProxyBuilder()
+//______________________________________________________________________________
+FWTrackProxyBuilder::FWTrackProxyBuilder() :m_trackerPropagator(0)
 {
+   m_trackerPropagator = new TEveTrackPropagator();
+   m_trackerPropagator->SetStepper( TEveTrackPropagator::kRungeKutta );
+   m_trackerPropagator->SetDelta(0.01);
+   m_trackerPropagator->IncDenyDestroy();
 }
 
+//______________________________________________________________________________
 FWTrackProxyBuilder::~FWTrackProxyBuilder()
 {
+   m_trackerPropagator->DecDenyDestroy();
 }
 
-void
-FWTrackProxyBuilder::build( const reco::Track& iData, unsigned int iIndex,TEveElement& oItemHolder , const FWViewContext*) 
+//______________________________________________________________________________
+void FWTrackProxyBuilder::build(const FWEventItem* iItem, TEveElementList* product, const FWViewContext* vc)
+{
+   // setup track propagator
+   //  CmsShowCommon* prefs = context().commonPrefs();
+   //  if ( m_trackerPropagator->GetProjTrackBreaking() != prefs->getProjTrackBreaking())  m_trackerPropagator->SetProjTrackBreaking(prefs->getProjTrackBreaking());
+   //if ( m_trackerPropagator->GetRnrPTBMarkers() != prefs->getRnrPTBMarkers())  m_trackerPropagator->SetRnrPTBMarkers(prefs->getRnrPTBMarkers());
+
+   if ( m_trackerPropagator->GetFitDecay() != item()->getConfig()->value<bool>("Fit Decay"))
+      m_trackerPropagator->SetFitDecay(!m_trackerPropagator->GetFitDecay());
+
+   FWSimpleProxyBuilder::build(iItem, product, vc);
+}
+
+//______________________________________________________________________________
+void FWTrackProxyBuilder::setItem(const FWEventItem* iItem)
+{
+   FWProxyBuilderBase::setItem(iItem);
+   if (iItem)
+   {
+      m_trackerPropagator->SetMagFieldObj(context().getField(), false);
+      // m_trackerPropagator->SetMaxR(context().getTrackerPropagator()->GetMaxR());
+      //m_trackerPropagator->SetMaxZ(context().getTrackerPropagator()->GetMaxR());
+ 
+      iItem->getConfig()->assertParam("Fit Decay", true);
+      iItem->getConfig()->assertParam("Fit Pixel RecHits", false);
+      iItem->getConfig()->assertParam("Fit Strip RecHits", false);
+      iItem->getConfig()->assertParam("Draw RecHits", false);
+      // iItem->getConfig()->assertParam("RecHits Color",  10l, 0l, 100l);
+   }
+}
+
+//______________________________________________________________________________
+void FWTrackProxyBuilder::build( const reco::Track& iData, unsigned int iIndex,TEveElement& oItemHolder , const FWViewContext*) 
 {
    // printf("Track [%d]========================================= \n", iIndex);
-   //if (iIndex != 13) return;
+   // if (iIndex != 33) return;
 
    if( context().getField()->getSource() == FWMagField::kNone ) {
       if( fabs( iData.eta() ) < 2.0 && iData.pt() > 0.5 && iData.pt() < 30 ) {
@@ -100,17 +136,17 @@ FWTrackProxyBuilder::build( const reco::Track& iData, unsigned int iIndex,TEveEl
       // printf("rc->fP.Set( %f, %f, %f); \n",  iData.px(), iData.py(), iData.pz());
       // printf("rc->fV.Set(%f, %f, %f); \n",  iData.vx(), iData.vy(), iData.vz());
       
-      trk = new TEveTrack( &t, context().getTrackerTrackPropagator()); 
+      trk = new TEveTrack( &t, m_trackerPropagator); 
    }
    else
    {
-      TEveTrackPropagator* propagator = ( !iData.extra().isAvailable() ) ?  context().getTrackerTrackPropagator() : context().getTrackPropagator();
-      trk = fireworks::prepareTrack( iData, propagator );
+      trk = fireworks::prepareTrack( iData, m_trackerPropagator );
    }
    
    if (drawRecHits || fitPixelRecHits || fitStripRecHits)
-      addRecHitInfo(iData, oItemHolder,  drawRecHits, trk, fitPixelRecHits, fitStripRecHits);  
-   
+      addRecHitInfo(iData, oItemHolder,  drawRecHits, trk, fitPixelRecHits, fitStripRecHits); 
+ 
+   trk->SetLineWidth(2);
    trk->MakeTrack();
    setupAddElement(trk, &oItemHolder);
 }
@@ -188,9 +224,9 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
          if (drawRecHits) 
          {
             scposition->AddLine( globalTop[0], globalTop[1], globalTop[2],globalBottom[0], globalBottom[1], globalBottom[2] );
-	    TEveGeoShape* shape = item()->getGeom()->getEveShape( rawid );
-            setupAddElement(shape, &oItemHolder);
-            shape->SetMainTransparency(65);
+            //  TEveGeoShape* shape = item()->getGeom()->getEveShape( rawid );
+            //setupAddElement(shape, &oItemHolder);
+            //shape->SetMainTransparency(65);
          } 
                              
          if (trk) {
@@ -212,7 +248,7 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
 
    if (drawRecHits) 
    {
-      int col = kRed; // item()->getConfig()->value<long>("RecHits Color");
+      int col = kGray; // item()->getConfig()->value<long>("RecHits Color");
       setupAddElement(pointSet, &oItemHolder);
       setupAddElement(scposition, &oItemHolder);     
       scposition->SetMainColor(col);
@@ -221,7 +257,7 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
   }
    
    // debug with Eve
-   if (0) {
+   if (1) {
       trk->SetRnrPoints(true);
       gEve->AddToListTree(trk, true);   
    }
