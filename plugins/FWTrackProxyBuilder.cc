@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue Nov 25 14:42:13 EST 2008
-// $Id: FWTrackProxyBuilder.cc,v 1.13.8.4 2012/06/30 00:10:25 amraktad Exp $
+// $Id: FWTrackProxyBuilder.cc,v 1.13.8.5 2012/07/02 20:20:32 amraktad Exp $
 //
 
 // system include files
@@ -125,7 +125,7 @@ void FWTrackProxyBuilder::build( const reco::Track& iData, unsigned int iIndex,T
    bool fitStripRecHits = item()->getConfig()->value<bool>("Fit Strip RecHits");
    bool drawRecHits = item()->getConfig()->value<bool>("Draw RecHits");
    
-   if (fitPixelRecHits || fitStripRecHits )
+   if (fitPixelRecHits || fitStripRecHits)
    {
       TEveRecTrack t;
       t.fBeta = 1.;
@@ -136,18 +136,26 @@ void FWTrackProxyBuilder::build( const reco::Track& iData, unsigned int iIndex,T
       // printf("rc->fP.Set( %f, %f, %f); \n",  iData.px(), iData.py(), iData.pz());
       // printf("rc->fV.Set(%f, %f, %f); \n",  iData.vx(), iData.vy(), iData.vz());
       
-      trk = new TEveTrack( &t, m_trackerPropagator); 
+      trk = new TEveTrack( &t, m_trackerPropagator);
+      addRecHitInfo(iData, oItemHolder, drawRecHits, trk, fitPixelRecHits, fitStripRecHits); 
+
+      if (iData.extra().isAvailable() && iData.outerOk())
+      {
+         trk->MakeTrack();
+         trk->SetDpDs((iData.p() - iData.outerP()) / trk->CalculateLineLength());
+      }
    }
    else
    {
       trk = fireworks::prepareTrack( iData, m_trackerPropagator );
+
+      if (drawRecHits || fitPixelRecHits || fitStripRecHits)
+         addRecHitInfo(iData, oItemHolder, drawRecHits, trk, fitPixelRecHits, fitStripRecHits); 
    }
-   
-   if (drawRecHits || fitPixelRecHits || fitStripRecHits)
-      addRecHitInfo(iData, oItemHolder,  drawRecHits, trk, fitPixelRecHits, fitStripRecHits); 
- 
+
    trk->SetLineWidth(2);
    trk->MakeTrack();
+
    setupAddElement(trk, &oItemHolder);
 }
 
@@ -158,17 +166,17 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
    TEvePointSet* pointSet = 0;
    if (drawRecHits)
    {
-      pointSet = new TEvePointSet();   
-      scposition =  new TEveStraightLineSet;   
+      pointSet   = new TEvePointSet();   
+      scposition = new TEveStraightLineSet;   
    }
 
    // track inner
-   if( iData.extra().isAvailable() && iData.innerOk())
-   {
-         const reco::TrackBase::Point  &v = iData.innerPosition();
-         const reco::TrackBase::Vector &p = iData.innerMomentum();
-         trk->AddPathMark( TEvePathMark( TEvePathMark::kReference, TEveVector(v.x(), v.y() , v.z()), TEveVector(p.x(), p.y() , p.z())));
-   }
+   // if (iData.extra().isAvailable() && iData.innerOk())
+   // {
+   //    const reco::TrackBase::Point  &v = iData.innerPosition();
+   //    const reco::TrackBase::Vector &p = iData.innerMomentum();
+   //    trk->AddPathMark( TEvePathMark( TEvePathMark::kReference, TEveVector(v.x(), v.y() , v.z()), TEveVector(p.x(), p.y() , p.z())));
+   // }
 
    // rec hits
    for( trackingRecHit_iterator it = iData.recHitsBegin(), itEnd = iData.recHitsEnd(); it != itEnd; ++it )
@@ -205,7 +213,7 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
             if (drawRecHits) pointSet->SetNextPoint(global[0], global[1], global[2]);
             if (trk)
             {
-               if (fitPixelRecHits) trk->AddPathMark( TEvePathMark( TEvePathMark::kDaughter, TEveVector(global[0], global[1], global[2])));            
+               if (fitPixelRecHits) trk->AddPathMark( TEvePathMark( TEvePathMark::kDaughter, TEveVector(global[0], global[1], global[2])));
             // printf("addPixeHit(%f, %f, %f)\n", global[0], global[1], global[2]);
             }
          }
@@ -240,11 +248,11 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
    }
    
    // track outer
-   if( iData.extra().isAvailable() && iData.outerOk())
-   {
-         const reco::TrackBase::Point  &v = iData.outerPosition();
-         trk->AddPathMark( TEvePathMark( TEvePathMark::kDecay, TEveVector(v.x(), v.y() , v.z())));
-   }
+   // if (iData.extra().isAvailable() && iData.outerOk())
+   // {
+   //    const reco::TrackBase::Point &v = iData.outerPosition();
+   //    trk->AddPathMark(TEvePathMark(TEvePathMark::kDecay, TEveVector(v.x(), v.y(), v.z())));
+   // }
 
    if (drawRecHits) 
    {
@@ -257,10 +265,11 @@ void FWTrackProxyBuilder::addRecHitInfo(const reco::Track& iData, TEveElement& o
   }
    
    // debug with Eve
-   if (1) {
-      trk->SetRnrPoints(true);
-      gEve->AddToListTree(trk, true);   
-   }
+   // if (1)
+   // {
+   //    trk->SetRnrPoints(true);
+   //    gEve->AddToListTree(trk, true);   
+   // }
 }
 
 REGISTER_FWPROXYBUILDER(FWTrackProxyBuilder, reco::Track, "Tracks", FWViewType::kAll3DBits | FWViewType::kAllRPZBits);
